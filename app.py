@@ -138,6 +138,12 @@ output_parser = StrOutputParser()
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
+import streamlit as st
+from langchain_core.messages import AIMessage, HumanMessage
+from pydantic import ValidationError
+
+# Assuming you have the necessary imports for your chain and template
+
 rag_chain = (
     {"context": compression_retriever | format_docs, "question": RunnablePassthrough()}
     | chat_template
@@ -152,16 +158,16 @@ if "chat_history" not in st.session_state:
         AIMessage(content="Hi, How may I help you today?"),
     ]
 
-# converstion
+# conversation
 for message in st.session_state.chat_history:
-    if isinstance(message,AIMessage):
+    if isinstance(message, AIMessage):
         with st.chat_message("AI"):
             st.write(message.content)
-    elif isinstance(message,HumanMessage):
+    elif isinstance(message, HumanMessage):
         with st.chat_message("Human"):
             st.write(message.content)
 
-## Take the user input
+# Take the user input
 user_prompt = st.chat_input()
 
 if user_prompt is not None and user_prompt != "":
@@ -171,6 +177,22 @@ if user_prompt is not None and user_prompt != "":
         st.markdown(user_prompt)
 
     with st.chat_message("AI"):
-        response= st.write(rag_chain.invoke(user_prompt))
+        try:
+            response = rag_chain.invoke(user_prompt)
+            st.write("Response from rag_chain:", response)  # Print the response for debugging
+            if isinstance(response, str):
+                st.session_state.chat_history.append(AIMessage(content=response))
+            else:
+                # Assuming response needs to be converted to string
+                st.session_state.chat_history.append(AIMessage(content=str(response)))
+        except ValidationError as e:
+            st.error(f"Validation error: {e}")
 
-    st.session_state.chat_history.append(AIMessage(content=response))
+# Rerun the conversation display
+for message in st.session_state.chat_history:
+    if isinstance(message, AIMessage):
+        with st.chat_message("AI"):
+            st.write(message.content)
+    elif isinstance(message, HumanMessage):
+        with st.chat_message("Human"):
+            st.write(message.content)
