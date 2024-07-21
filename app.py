@@ -46,7 +46,7 @@ from pymilvus import (
 )
 
 # Set environment variables
-os.environ['GROQ_API_KEY'] = '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'
+os.environ['GROQ_API_KEY'] = ''
 
 model = ChatGroq(model_name="Llama3-8b-8192")
 
