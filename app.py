@@ -171,6 +171,6 @@ if user_prompt is not None and user_prompt != "":
         st.markdown(user_prompt)
 
     with st.chat_message("AI"):
-        response= st.write_stream(rag_chain.invoke(user_prompt))
+        response= st.write(rag_chain.invoke(user_prompt))
 
     st.session_state.chat_history.append(AIMessage(content=response))
