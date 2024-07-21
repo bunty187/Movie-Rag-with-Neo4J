@@ -37,7 +37,7 @@ from nltk import word_tokenize
 
 from nltk.corpus import stopwords 
 
-
+nltk.download("punkt")
 
 import os
 
