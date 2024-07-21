@@ -15,4 +15,3 @@ grpcio==1.60.1
 rank_bm25
 # pymilvus
 cohere
-flashrank
