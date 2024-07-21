@@ -177,22 +177,6 @@ if user_prompt is not None and user_prompt != "":
         st.markdown(user_prompt)
 
     with st.chat_message("AI"):
-        try:
             response = rag_chain.invoke(user_prompt)
-            st.write("Response from rag_chain:", response)  # Print the response for debugging
-            if isinstance(response, str):
-                st.session_state.chat_history.append(AIMessage(content=response))
-            else:
-                # Assuming response needs to be converted to string
-                st.session_state.chat_history.append(AIMessage(content=str(response)))
-        except ValidationError as e:
-            st.error(f"Validation error: {e}")
-
-# Rerun the conversation display
-for message in st.session_state.chat_history:
-    if isinstance(message, AIMessage):
-        with st.chat_message("AI"):
-            st.write(message.content)
-    elif isinstance(message, HumanMessage):
-        with st.chat_message("Human"):
-            st.write(message.content)
+            st.write(response)  # Print the response for debugging
+    st.session_state.chat_history.append(AIMessage(content=response))
