@@ -16,3 +16,4 @@ rank_bm25
 # pymilvus
 cohere
 nltk
+langchain_cohere
