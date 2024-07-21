@@ -26,7 +26,7 @@ from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTempla
 from langchain_core.output_parsers import StrOutputParser
 
 # from langchain.memory import ChatMessageHistory
-from langchain_community.chat_message_histories import ChatMessageHis
+from langchain_community.chat_message_histories import ChatMessageHistory
 
 # from openai import OpenAI
 import streamlit as st
