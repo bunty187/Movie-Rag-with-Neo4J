@@ -36,6 +36,21 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
 from langchain_community.chat_message_histories import ChatMessageHistory
+
+from langchain_core.runnables import RunnablePassthrough,RunnableParallel
+
+from langchain.chains import create_retrieval_chain
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain.chains.combine_documents import create_stuff_documents_chain
+
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
+# from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.output_parsers import StrOutputParser
+
+from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
+from langchain_cohere import CohereRerank
+
 from pymilvus import (
     Collection,
     CollectionSchema,
@@ -46,7 +61,8 @@ from pymilvus import (
 )
 
 # Set environment variables
-os.environ['GROQ_API_KEY'] = ''
+os.environ['GROQ_API_KEY'] = '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'
+os.environ['COHERE_API_KEY'] = 'qBkd9Con8JlRO5rosUMUKdYqEnijuM0gIoXSQsBd'
 
 model = ChatGroq(model_name="Llama3-8b-8192")
 
@@ -95,6 +111,13 @@ retriever = MilvusCollectionHybridSearchRetriever(
     text_field=text_field
 )
 
+
+compressor = CohereRerank(model="rerank-english-v3.0")
+compression_retriever = ContextualCompressionRetriever(
+    base_compressor=compressor, base_retriever=retriever
+)
+
+
 ## Define the Chat template
 chat_template = ChatPromptTemplate.from_messages([
     # System Message Prompt Template
@@ -115,12 +138,11 @@ output_parser = StrOutputParser()
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
-## Create the chain
-rag_chain = create_retrieval_chain(
-    retriever=retriever,
-    question_prompt_template=chat_template,
-    output_parser=output_parser,
-    llm=model,
+rag_chain = (
+    {"context": compression_retriever | format_docs, "question": RunnablePassthrough()}
+    | chat_template
+    | model
+    | output_parser
 )
 
 st.title("💬Leave No Context Behind Paper Q/A RAG System")
@@ -130,12 +152,12 @@ if "chat_history" not in st.session_state:
         AIMessage(content="Hi, How may I help you today?"),
     ]
 
-# conversation
+# converstion
 for message in st.session_state.chat_history:
-    if isinstance(message, AIMessage):
+    if isinstance(message,AIMessage):
         with st.chat_message("AI"):
             st.write(message.content)
-    elif isinstance(message, HumanMessage):
+    elif isinstance(message,HumanMessage):
         with st.chat_message("Human"):
             st.write(message.content)
 
@@ -149,9 +171,6 @@ if user_prompt is not None and user_prompt != "":
         st.markdown(user_prompt)
 
     with st.chat_message("AI"):
-        processing_message = st.markdown("Processing...")
-        response = rag_chain.run({"context": format_docs(retriever.retrieve(user_prompt)), "question": user_prompt})
-        processing_message.empty()
-        st.markdown(response)
+        response= st.write_stream(rag_chain.invoke(user_prompt))
 
     st.session_state.chat_history.append(AIMessage(content=response))
