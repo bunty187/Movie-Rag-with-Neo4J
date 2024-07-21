@@ -18,8 +18,6 @@ class HiddenPrints:
 with HiddenPrints():
     nltk.download("punkt")
 
-# Rest of your code follows
-
 import ast
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
@@ -118,11 +116,11 @@ def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 ## Create the chain
-rag_chain = (
-    {"context": retriever | format_docs, "question": RunnablePassthrough()}
-    | chat_template
-    | model
-    | output_parser
+rag_chain = create_retrieval_chain(
+    retriever=retriever,
+    question_prompt_template=chat_template,
+    output_parser=output_parser,
+    llm=model,
 )
 
 st.title("💬Leave No Context Behind Paper Q/A RAG System")
@@ -152,7 +150,7 @@ if user_prompt is not None and user_prompt != "":
 
     with st.chat_message("AI"):
         processing_message = st.markdown("Processing...")
-        response = rag_chain.run({"context": retriever, "question": user_prompt})
+        response = rag_chain.run({"context": format_docs(retriever.retrieve(user_prompt)), "question": user_prompt})
         processing_message.empty()
         st.markdown(response)
 
