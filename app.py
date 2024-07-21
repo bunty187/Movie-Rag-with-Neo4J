@@ -30,7 +30,12 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 
 # from openai import OpenAI
 import streamlit as st
+import nltk                                                             
+import yaml                                                             
 
+from nltk import word_tokenize                                          
+
+from nltk.corpus import stopwords 
 
 
 
