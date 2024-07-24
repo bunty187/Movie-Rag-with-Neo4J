@@ -1,1 +1,1 @@
-# multi-pdf-rag
+# Movie RAG with Neo4J
